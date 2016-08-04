@@ -1,6 +1,8 @@
 rdiff
 =====
 [![CC0](http://i.creativecommons.org/p/zero/1.0/88x31.png)](http://creativecommons.org/publicdomain/zero/1.0/)
+[![Build Status](https://travis-ci.org/dyule/rdiff.svg?branch=master)](https://travis-ci.org/dyule/rdiff)
+[![Crates.io](https://img.shields.io/crates/v/rdiff.svg?maxAge=2592000)](https://crates.io/crates/rdiff)
 
 rdiff is a package for comparing versions of a file over time.  It is written is Rust, and expects version > 1.8.
 
