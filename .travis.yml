@@ -1,0 +1,10 @@
+language: rust
+install:
+  - cargo build
+script:
+  - cargo test
+  - cargo doc
+after_success:
+  - bash deploy.sh
+env:
+  global:
