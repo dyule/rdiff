@@ -1,7 +1,10 @@
 rdiff
 =====
+[![CC0](http://i.creativecommons.org/p/zero/1.0/88x31.png)](http://creativecommons.org/publicdomain/zero/1.0/)
 
 rdiff is a package for comparing versions of a file over time.  It is written is Rust, and expects version > 1.8.
+
+To the extent possible under law, rdiff contributors have waived all copyright and related or neighboring rights to rdiff.
 
 # Usage
 

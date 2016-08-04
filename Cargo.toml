@@ -9,4 +9,4 @@ log = "0.3"
 
 [dev-dependencies]
 notify = "2.6.1"
-env_logger = "*"
+env_logger = "0.3"

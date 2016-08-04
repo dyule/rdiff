@@ -16,7 +16,7 @@
 //! // Outputs "Diffs: Diff{inserts: [Insert(0, The next vers)], deletes:[Delete(13, 16)]}"
 //! ```
 //!
-//! This crate also contains methods relating to finding the differences between two strings, in the [hirschberg](hirschberg/index.html) module.
+//! This crate also contains methods relating to finding the differences between two strings, in the [string_diff](string_diff/index.html) module.
 //! These methods can be used to refine the course differences found through the rsync method.
 
 #![deny(missing_docs)]
@@ -26,7 +26,7 @@ extern crate log;
 
 mod window;
 mod hashing;
-pub mod hirschberg;
+pub mod string_diff;
 
 use std::collections::HashMap;
 use std::io::Read;
