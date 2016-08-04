@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="generator" content="rustdoc">
+    <meta name="description" content="API documentation for the Rust `BlockHashes` struct in crate `rdiff`.">
+    <meta name="keywords" content="rust, rustlang, rust-lang, BlockHashes">
+
+    <title>rdiff::BlockHashes - Rust</title>
+
+    <link rel="stylesheet" type="text/css" href="../rustdoc.css">
+    <link rel="stylesheet" type="text/css" href="../main.css">
+    
+
+    
+    
+</head>
+<body class="rustdoc">
+    <!--[if lte IE 8]>
+    <div class="warning">
+        This old browser is unsupported and will most likely display funky
+        things.
+    </div>
+    <![endif]-->
+
+    
+
+    <nav class="sidebar">
+        
+        <p class='location'><a href='index.html'>rdiff</a></p><script>window.sidebarCurrent = {name: 'BlockHashes', ty: 'struct', relpath: ''};</script><script defer src="sidebar-items.js"></script>
+    </nav>
+
+    <nav class="sub">
+        <form class="search-form js-only">
+            <div class="search-container">
+                <input class="search-input" name="search"
+                       autocomplete="off"
+                       placeholder="Click or press ‘S’ to search, ‘?’ for more options…"
+                       type="search">
+            </div>
+        </form>
+    </nav>
+
+    <section id='main' class="content struct">
+<h1 class='fqn'><span class='in-band'>Struct <a href='index.html'>rdiff</a>::<wbr><a class='struct' href=''>BlockHashes</a></span><span class='out-of-band'><span id='render-detail'>
+                   <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
+                       [<span class='inner'>&#x2212;</span>]
+                   </a>
+               </span><a id='src-281' class='srclink' href='../src/rdiff/src/lib.rs.html#42-46' title='goto source code'>[src]</a></span></h1>
+<pre class='rust struct'>pub struct BlockHashes {
+    // some fields omitted
+}</pre><div class='docblock'><p>Used for calculating and re-calculating the differences between two versions of the same file</p>
+
+<p>See the <a href="index.html">module level documentation</a> for examples on how to use this</p>
+</div><h2 id='methods'>Methods</h2><h3 class='impl'><span class='in-band'><code>impl <a class='struct' href='../rdiff/struct.BlockHashes.html' title='rdiff::BlockHashes'>BlockHashes</a></code></span><span class='out-of-band'><div class='ghost'></div><a id='src-82' class='srclink' href='../src/rdiff/src/hashing.rs.html#71-246' title='goto source code'>[src]</a></span></h3>
+<div class='impl-items'><h4 id='method.new' class='method'><code>fn <a href='#method.new' class='fnname'>new</a>&lt;R: <a class='trait' href='https://doc.rust-lang.org/nightly/std/io/trait.Read.html' title='std::io::Read'>Read</a>&gt;(data_source: R, block_size: <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.usize.html'>usize</a>) -&gt; <a class='type' href='https://doc.rust-lang.org/nightly/std/io/error/type.Result.html' title='std::io::error::Result'>Result</a>&lt;<a class='struct' href='../rdiff/struct.BlockHashes.html' title='rdiff::BlockHashes'>BlockHashes</a>&gt;</code></h4>
+<div class='docblock'><p>Create a new BlockHash based on the data in data_source.  This method
+will create a hash for every <code>block_size</code> set of bytes in <code>data_source</code>.</p>
+
+<p>To see the difference after <code>data_source</code> has been updated, use <code>diff_and_update()</code></p>
+
+<p>This method returns an error when there is a problem reading from <code>data_source</code>.</p>
+</div><h4 id='method.diff_and_update' class='method'><code>fn <a href='#method.diff_and_update' class='fnname'>diff_and_update</a>&lt;R: <a class='trait' href='https://doc.rust-lang.org/nightly/std/io/trait.Read.html' title='std::io::Read'>Read</a>&gt;(&amp;mut self, new_data: R) -&gt; <a class='type' href='https://doc.rust-lang.org/nightly/std/io/error/type.Result.html' title='std::io::error::Result'>Result</a>&lt;<a class='struct' href='../rdiff/struct.Diff.html' title='rdiff::Diff'>Diff</a>&gt;</code></h4>
+<div class='docblock'><p>Compare the data in <code>new_data</code> with the hashes computed from either
+the most recent call to <code>diff_and_update()</code> or when this <code>BlockHashes</code> was updated</p>
+
+<h1 id='example' class='section-header'><a href='#example'>Example</a></h1>
+<pre class='rust rust-example-rendered'>
+<span class='kw'>use</span> <span class='ident'>rdiff</span>::<span class='ident'>BlockHashes</span>;
+<span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>io</span>::<span class='ident'>Cursor</span>;
+<span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>hashes</span> <span class='op'>=</span> <span class='ident'>BlockHashes</span>::<span class='ident'>new</span>(<span class='ident'>Cursor</span>::<span class='ident'>new</span>(<span class='string'>&quot;It was the best of times&quot;</span>), <span class='number'>6</span>).<span class='ident'>unwrap</span>();
+<span class='kw'>let</span> <span class='ident'>diff</span> <span class='op'>=</span> <span class='ident'>hashes</span>.<span class='ident'>diff_and_update</span>(<span class='ident'>Cursor</span>::<span class='ident'>new</span>(<span class='string'>&quot;It was not the best of things&quot;</span>)).<span class='ident'>unwrap</span>();
+<span class='comment'>// prints (6, &#39; not&#39;) and (22, &#39; things&#39;))</span>
+<span class='kw'>for</span> <span class='ident'>insert</span> <span class='kw'>in</span> <span class='ident'>diff</span>.<span class='ident'>inserts</span>() {
+    <span class='macro'>println</span><span class='macro'>!</span>(<span class='string'>&quot;{:?}&quot;</span>, <span class='ident'>insert</span>);
+}
+<span class='comment'>// prints (29, 6)</span>
+<span class='kw'>for</span> <span class='ident'>delete</span> <span class='kw'>in</span> <span class='ident'>diff</span>.<span class='ident'>deletes</span>() {
+    <span class='macro'>println</span><span class='macro'>!</span>(<span class='string'>&quot;{:?}&quot;</span>, <span class='ident'>delete</span>);
+}
+<span class='macro'>assert_eq</span><span class='macro'>!</span>(<span class='string'>&quot;It was not the best of things&quot;</span>,
+            <span class='ident'>diff</span>.<span class='ident'>apply_to_string</span>(<span class='string'>&quot;It was the best of times&quot;</span>).<span class='ident'>unwrap</span>());</pre>
+</div></div><h2 id='implementations'>Trait Implementations</h2><h3 id='derived_implementations'>Derived Implementations </h3><h3 class='impl'><span class='in-band'><code>impl <a class='trait' href='https://doc.rust-lang.org/nightly/core/cmp/trait.PartialEq.html' title='core::cmp::PartialEq'>PartialEq</a> for <a class='struct' href='../rdiff/struct.BlockHashes.html' title='rdiff::BlockHashes'>BlockHashes</a></code></span><span class='out-of-band'><div class='ghost'></div><a id='src-286' class='srclink' href='../src/rdiff/src/lib.rs.html#41' title='goto source code'>[src]</a></span></h3>
+<div class='impl-items'><h4 id='method.eq' class='method'><code>fn <a href='https://doc.rust-lang.org/nightly/core/cmp/trait.PartialEq.html#tymethod.eq' class='fnname'>eq</a>(&amp;self, __arg_0: &amp;<a class='struct' href='../rdiff/struct.BlockHashes.html' title='rdiff::BlockHashes'>BlockHashes</a>) -&gt; <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.bool.html'>bool</a></code></h4>
+<div class='docblock'><p>This method tests for <code>self</code> and <code>other</code> values to be equal, and is used by <code>==</code>. <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.PartialEq.html#tymethod.eq">Read more</a></p>
+</div><h4 id='method.ne' class='method'><code>fn <a href='https://doc.rust-lang.org/nightly/core/cmp/trait.PartialEq.html#method.ne' class='fnname'>ne</a>(&amp;self, __arg_0: &amp;<a class='struct' href='../rdiff/struct.BlockHashes.html' title='rdiff::BlockHashes'>BlockHashes</a>) -&gt; <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.bool.html'>bool</a></code></h4>
+<div class='docblock'><p>This method tests for <code>!=</code>.</p>
+</div></div><h3 class='impl'><span class='in-band'><code>impl <a class='trait' href='https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html' title='core::fmt::Debug'>Debug</a> for <a class='struct' href='../rdiff/struct.BlockHashes.html' title='rdiff::BlockHashes'>BlockHashes</a></code></span><span class='out-of-band'><div class='ghost'></div><a id='src-305' class='srclink' href='../src/rdiff/src/lib.rs.html#41' title='goto source code'>[src]</a></span></h3>
+<div class='impl-items'><h4 id='method.fmt' class='method'><code>fn <a href='https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html#tymethod.fmt' class='fnname'>fmt</a>(&amp;self, __arg_0: &amp;mut <a class='struct' href='https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html' title='core::fmt::Formatter'>Formatter</a>) -&gt; <a class='type' href='https://doc.rust-lang.org/nightly/core/fmt/type.Result.html' title='core::fmt::Result'>Result</a></code></h4>
+<div class='docblock'><p>Formats the value using the given formatter.</p>
+</div></div></section>
+    <section id='search' class="content hidden"></section>
+
+    <section class="footer"></section>
+
+    <aside id="help" class="hidden">
+        <div>
+            <h1 class="hidden">Help</h1>
+
+            <div class="shortcuts">
+                <h2>Keyboard Shortcuts</h2>
+
+                <dl>
+                    <dt>?</dt>
+                    <dd>Show this help dialog</dd>
+                    <dt>S</dt>
+                    <dd>Focus the search field</dd>
+                    <dt>&larrb;</dt>
+                    <dd>Move up in search results</dd>
+                    <dt>&rarrb;</dt>
+                    <dd>Move down in search results</dd>
+                    <dt>&#9166;</dt>
+                    <dd>Go to active search result</dd>
+                    <dt>+</dt>
+                    <dd>Collapse/expand all sections</dd>
+                </dl>
+            </div>
+
+            <div class="infos">
+                <h2>Search Tricks</h2>
+
+                <p>
+                    Prefix searches with a type followed by a colon (e.g.
+                    <code>fn:</code>) to restrict the search to a given type.
+                </p>
+
+                <p>
+                    Accepted types are: <code>fn</code>, <code>mod</code>,
+                    <code>struct</code>, <code>enum</code>,
+                    <code>trait</code>, <code>type</code>, <code>macro</code>,
+                    and <code>const</code>.
+                </p>
+
+                <p>
+                    Search functions by type signature (e.g.
+                    <code>vec -> usize</code> or <code>* -> vec</code>)
+                </p>
+            </div>
+        </div>
+    </aside>
+
+    
+
+    <script>
+        window.rootPath = "../";
+        window.currentCrate = "rdiff";
+        window.playgroundUrl = "";
+    </script>
+    <script src="../jquery.js"></script>
+    <script src="../main.js"></script>
+    
+    <script defer src="../search-index.js"></script>
+</body>
+</html>

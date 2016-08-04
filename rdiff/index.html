@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="generator" content="rustdoc">
+    <meta name="description" content="API documentation for the Rust `rdiff` crate.">
+    <meta name="keywords" content="rust, rustlang, rust-lang, rdiff">
+
+    <title>rdiff - Rust</title>
+
+    <link rel="stylesheet" type="text/css" href="../rustdoc.css">
+    <link rel="stylesheet" type="text/css" href="../main.css">
+    
+
+    
+    
+</head>
+<body class="rustdoc">
+    <!--[if lte IE 8]>
+    <div class="warning">
+        This old browser is unsupported and will most likely display funky
+        things.
+    </div>
+    <![endif]-->
+
+    
+
+    <nav class="sidebar">
+        
+        <p class='location'></p><script>window.sidebarCurrent = {name: 'rdiff', ty: 'mod', relpath: '../'};</script>
+    </nav>
+
+    <nav class="sub">
+        <form class="search-form js-only">
+            <div class="search-container">
+                <input class="search-input" name="search"
+                       autocomplete="off"
+                       placeholder="Click or press ‘S’ to search, ‘?’ for more options…"
+                       type="search">
+            </div>
+        </form>
+    </nav>
+
+    <section id='main' class="content mod">
+<h1 class='fqn'><span class='in-band'>Crate <a class='mod' href=''>rdiff</a></span><span class='out-of-band'><span id='render-detail'>
+                   <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
+                       [<span class='inner'>&#x2212;</span>]
+                   </a>
+               </span><a id='src-0' class='srclink' href='../src/rdiff/src/lib.rs.html#1-211' title='goto source code'>[src]</a></span></h1>
+<div class='docblock'><p>Finds the difference between sequential versions of files.</p>
+
+<p>Based on the rsync algorithm.
+The <code>BlockHashes</code> struct will find the differences between versions of the same file.
+It does this through the <a href="struct.BlockHashes.html#method.diff_and_update"><code>diff_and_update()</code></a> method.</p>
+
+<h1 id='example' class='section-header'><a href='#example'>Example</a></h1>
+<pre class='rust rust-example-rendered'>
+<span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>io</span>::<span class='ident'>Cursor</span>;
+<span class='kw'>use</span> <span class='ident'>rdiff</span>::<span class='ident'>BlockHashes</span>;
+
+<span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>hash</span> <span class='op'>=</span> <span class='ident'>BlockHashes</span>::<span class='ident'>new</span>(<span class='ident'>Cursor</span>::<span class='ident'>new</span>(<span class='string'>&quot;The initial version&quot;</span>), <span class='number'>8</span>).<span class='ident'>unwrap</span>();
+<span class='kw'>let</span> <span class='ident'>diffs</span> <span class='op'>=</span> <span class='ident'>hash</span>.<span class='ident'>diff_and_update</span>(<span class='ident'>Cursor</span>::<span class='ident'>new</span>(<span class='string'>&quot;The next version&quot;</span>)).<span class='ident'>unwrap</span>();
+<span class='macro'>println</span><span class='macro'>!</span>(<span class='string'>&quot;Diffs: {:?}&quot;</span>, <span class='ident'>diffs</span>);
+<span class='comment'>// Outputs &quot;Diffs: Diff{inserts: [Insert(0, The next vers)], deletes:[Delete(13, 16)]}&quot;</span></pre>
+
+<p>This crate also contains methods relating to finding the differences between two strings, in the <a href="string_diff/index.html">string_diff</a> module.
+These methods can be used to refine the course differences found through the rsync method.</p>
+</div><h2 id='modules' class='section-header'><a href="#modules">Modules</a></h2>
+<table>
+                       <tr class=' module-item'>
+                           <td><a class='mod' href='string_diff/index.html'
+                                  title='rdiff::string_diff'>string_diff</a></td>
+                           <td class='docblock short'>
+                                <p>Used for finding the minimal set of operations to transform one string into another.</p>
+                           </td>
+                       </tr></table><h2 id='structs' class='section-header'><a href="#structs">Structs</a></h2>
+<table>
+                       <tr class=' module-item'>
+                           <td><a class='struct' href='struct.BlockHashes.html'
+                                  title='rdiff::BlockHashes'>BlockHashes</a></td>
+                           <td class='docblock short'>
+                                <p>Used for calculating and re-calculating the differences between two versions of the same file</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='struct' href='struct.Delete.html'
+                                  title='rdiff::Delete'>Delete</a></td>
+                           <td class='docblock short'>
+                                <p>Represents an operation to delete a certain number of bytes at a particular position in a file</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='struct' href='struct.Diff.html'
+                                  title='rdiff::Diff'>Diff</a></td>
+                           <td class='docblock short'>
+                                <p>Represents a series of operations that were performed on a file to transform it into a new
+version.</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='struct' href='struct.Insert.html'
+                                  title='rdiff::Insert'>Insert</a></td>
+                           <td class='docblock short'>
+                                <p>Represents an operation to insert bytes at a particular position into a file</p>
+                           </td>
+                       </tr></table></section>
+    <section id='search' class="content hidden"></section>
+
+    <section class="footer"></section>
+
+    <aside id="help" class="hidden">
+        <div>
+            <h1 class="hidden">Help</h1>
+
+            <div class="shortcuts">
+                <h2>Keyboard Shortcuts</h2>
+
+                <dl>
+                    <dt>?</dt>
+                    <dd>Show this help dialog</dd>
+                    <dt>S</dt>
+                    <dd>Focus the search field</dd>
+                    <dt>&larrb;</dt>
+                    <dd>Move up in search results</dd>
+                    <dt>&rarrb;</dt>
+                    <dd>Move down in search results</dd>
+                    <dt>&#9166;</dt>
+                    <dd>Go to active search result</dd>
+                    <dt>+</dt>
+                    <dd>Collapse/expand all sections</dd>
+                </dl>
+            </div>
+
+            <div class="infos">
+                <h2>Search Tricks</h2>
+
+                <p>
+                    Prefix searches with a type followed by a colon (e.g.
+                    <code>fn:</code>) to restrict the search to a given type.
+                </p>
+
+                <p>
+                    Accepted types are: <code>fn</code>, <code>mod</code>,
+                    <code>struct</code>, <code>enum</code>,
+                    <code>trait</code>, <code>type</code>, <code>macro</code>,
+                    and <code>const</code>.
+                </p>
+
+                <p>
+                    Search functions by type signature (e.g.
+                    <code>vec -> usize</code> or <code>* -> vec</code>)
+                </p>
+            </div>
+        </div>
+    </aside>
+
+    
+
+    <script>
+        window.rootPath = "../";
+        window.currentCrate = "rdiff";
+        window.playgroundUrl = "";
+    </script>
+    <script src="../jquery.js"></script>
+    <script src="../main.js"></script>
+    
+    <script defer src="../search-index.js"></script>
+</body>
+</html>
