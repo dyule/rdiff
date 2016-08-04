@@ -17,7 +17,7 @@ in `Cargo.toml`:
 rdiff = "0.1"
 ```
 
-In your rust file (taken from [examples/predefined.rs](rdiff/blob/master/examples/predefined.rs)):
+In your rust file (taken from [examples/predefined.rs](blob/master/examples/predefined.rs)):
 
 ``` rust
 extern crate rdiff;
