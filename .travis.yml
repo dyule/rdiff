@@ -1,4 +1,8 @@
 language: rust
+rust:
+  - stable
+  - beta
+  - nightly
 install:
   - cargo build
 script:
@@ -6,5 +10,3 @@ script:
   - cargo doc --no-deps
 after_success:
   - bash deploy.sh
-env:
-  global:

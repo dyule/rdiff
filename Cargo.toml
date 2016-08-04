@@ -2,6 +2,13 @@
 name = "rdiff"
 version = "0.1.0"
 authors = ["Daniel Yule <daniel.yule@gmail.com>"]
+description = "A library for tracking changes to a file over time"
+documentation = "https://dyule.github.io/rdiff/rdiff/"
+homepage = "https://github.com/dyule/rdiff"
+repository = "https://github.com/dyule/rdiff"
+readme = "README.md"
+keywords = ["rsync", "diff"]
+license = "CC0-1.0"
 
 [dependencies]
 rust-crypto = "^0.2"
