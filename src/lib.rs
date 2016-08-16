@@ -187,6 +187,36 @@ impl fmt::Debug for Delete {
     }
 }
 
+impl Insert {
+    /// Gets the byte position of this insert operation in its file
+    #[inline]
+    pub fn get_position(&self) -> usize {
+        self.position
+    }
+
+    /// Gets the data this insert operation will insert
+    #[inline]
+    pub fn get_data(&self) -> &Vec<u8> {
+        &self.data
+    }
+
+}
+
+impl Delete {
+    /// Gets the byte position of this delete operation in its file
+    #[inline]
+    pub fn get_position(&self) -> usize {
+        self.position
+    }
+
+    /// Gets the length in bytes of this delete operation
+    #[inline]
+    pub fn get_length(&self) -> usize {
+        self.len
+    }
+
+}
+
 #[cfg(test)]
 mod test {
     use super::Diff;

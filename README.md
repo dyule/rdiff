@@ -8,6 +8,8 @@ rdiff is a package for comparing versions of a file over time.  It is written is
 
 To the extent possible under law, rdiff contributors have waived all copyright and related or neighboring rights to rdiff.
 
+[Documentation](https://dyule.github.io/rdiff/rdiff/)
+
 # Usage
 
 in `Cargo.toml`:

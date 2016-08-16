@@ -1,6 +1,6 @@
 [package]
 name = "rdiff"
-version = "0.1.0"
+version = "0.1.1"
 authors = ["Daniel Yule <daniel.yule@gmail.com>"]
 description = "A library for tracking changes to a file over time"
 documentation = "https://dyule.github.io/rdiff/rdiff/"
