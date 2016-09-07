@@ -21,6 +21,7 @@
 
 #![deny(missing_docs)]
 extern crate crypto;
+extern crate byteorder;
 #[macro_use]
 extern crate log;
 
@@ -29,11 +30,14 @@ mod hashing;
 pub mod string_diff;
 
 use std::collections::HashMap;
-use std::io::Read;
+use std::fs::File;
+use std::io::{self, Read, Write, Seek, SeekFrom};
 use std::slice::Iter;
 use std::fmt;
 use std::mem;
 use std::string::FromUtf8Error;
+
+use byteorder::{NetworkEndian, ByteOrder};
 
 /// Used for calculating and re-calculating the differences between two versions of the same file
 ///
@@ -136,8 +140,13 @@ impl Diff {
         self.deletes.iter()
     }
 
+    /// Checks if this set of diffs has any actual content
+    pub fn is_empty(&self) -> bool {
+        self.deletes.is_empty() && self.inserts.is_empty()
+    }
+
     /// Applies all of the operations in the diff to the given string.
-    /// Gives an error if the resulting string can't be represented by ut8.
+    /// Gives an error if the resulting string can't be represented by utf8.
     ///
     /// # Panics
     /// When the operations refer to positions that are not represented by the string.
@@ -173,6 +182,87 @@ impl Diff {
         }
         String::from_utf8(new_bytes)
     }
+
+    /// Apply the operations in this sequence to a file.  This should not be called until after
+    /// the sequence has been integrated via [`Engine::integrate_remote`](struct.Engine.html#method.integrate_remote)
+    /// The file must have been opened on both read and write mode (see [OpenOptions](https://doc.rust-lang.org/nightly/std/fs/struct.OpenOptions.html)).
+    pub fn apply(&self, file: &mut File) -> io::Result<()> {
+        let mut new_bytes = Vec::new();
+        try!(file.seek(SeekFrom::Start(0)));
+        let mut old_bytes = file.try_clone().unwrap().bytes();
+        let mut index = 0;
+        for insert in self.inserts.iter() {
+            while index < insert.position {
+                new_bytes.push(try!(old_bytes.next().unwrap()).clone());
+                index += 1;
+            }
+            new_bytes.extend_from_slice(&insert.data[..]);
+            index += insert.data.len();
+        }
+        while let Some(byte) = old_bytes.next() {
+            new_bytes.push(try!(byte));
+        }
+        let old_bytes = mem::replace(&mut new_bytes, Vec::new());
+        let mut old_bytes = old_bytes.into_iter();
+        index = 0;
+        for delete in self.deletes.iter() {
+            while index < delete.position {
+                new_bytes.push(old_bytes.next().unwrap());
+                index += 1;
+            }
+            for _ in 0..delete.len {
+                old_bytes.next();
+            }
+        }
+        while let Some(byte) = old_bytes.next() {
+            new_bytes.push(byte);
+        }
+
+        try!(file.seek(SeekFrom::Start(0)));
+        try!(file.set_len(new_bytes.len() as u64));
+        file.write_all(new_bytes.as_slice())
+    }
+
+    /// Compress this diff and write to `writer`.  The output can then be expanded
+    /// back into an equivilent Diff using `expand_from()`
+    pub fn compress_to<W: Write>(&self, writer: &mut W) -> io::Result<()> {
+
+        let mut int_buf = [0;4];
+        NetworkEndian::write_u32(&mut int_buf, self.inserts.len() as u32);
+        try!(writer.write(&mut int_buf));
+        for insert in self.inserts.iter() {
+            try!(insert.compress_to(writer));
+        }
+        NetworkEndian::write_u32(&mut int_buf, self.deletes.len() as u32);
+        try!(writer.write(&mut int_buf));
+        for delete in self.deletes.iter() {
+            try!(delete.compress_to(writer));
+        }
+        Ok(())
+    }
+
+    /// Expand this diff from previously compressed data in `reader`.  The data in reader
+    /// should have been written using `compress_to()`
+    pub fn expand_from<R: Read>(reader: &mut R) -> io::Result<Diff> {
+        let mut int_buf = [0;4];
+
+        trace!("Reading insert length");
+        try!(reader.read_exact(&mut int_buf));
+        let insert_len = NetworkEndian::read_u32(&int_buf);
+        trace!("Insert length was: {}", insert_len);
+        let inserts = (0..insert_len).map(|_|Insert::expand_from(reader).unwrap()).collect();
+        trace!("Read inserts");
+        trace!("Reading delete length");
+        try!(reader.read_exact(&mut int_buf));
+        let delete_len = NetworkEndian::read_u32(&int_buf);
+        trace!("Delete length was: {}", delete_len);
+        let deletes = (0..delete_len).map(|_|Delete::expand_from(reader).unwrap()).collect();
+        trace!("Read deletes");
+        Ok(Diff {
+            inserts: inserts,
+            deletes: deletes
+        })
+    }
 }
 
 impl fmt::Debug for Insert {
@@ -200,6 +290,36 @@ impl Insert {
         &self.data
     }
 
+    /// Compress this operation and write to `writer`.  The output can then be expanded
+    /// back into an equivilent operation using `expand_from()`
+    pub fn compress_to<W: Write>(&self, writer: &mut W) -> io::Result<()> {
+
+        let mut int_buf = [0;4];
+        NetworkEndian::write_u32(&mut int_buf, self.position as u32);
+        try!(writer.write(&int_buf));
+        NetworkEndian::write_u32(&mut int_buf, self.data.len() as u32);
+        try!(writer.write(&int_buf));
+        try!(writer.write(&self.data));
+        Ok(())
+    }
+
+    /// Expand this operation from previously compressed data in `reader`.  The data in reader
+    /// should have been written using `compress_to()`
+    pub fn expand_from<R: Read>(reader: &mut R) -> io::Result<Insert> {
+        let mut int_buf = [0;4];
+        try!(reader.read_exact(&mut int_buf));
+        let position = NetworkEndian::read_u32(&int_buf);
+        try!(reader.read_exact(&mut int_buf));
+        let data_len = NetworkEndian::read_u32(&int_buf) as usize;
+        let mut data = Vec::with_capacity(data_len);
+        data.resize(data_len, 0);
+        try!(reader.read_exact(&mut data));
+        Ok(Insert{
+            position: position as usize,
+            data: data
+        })
+    }
+
 }
 
 impl Delete {
@@ -213,6 +333,32 @@ impl Delete {
     #[inline]
     pub fn get_length(&self) -> usize {
         self.len
+    }
+
+    /// Compress this operation and write to `writer`.  The output can then be expanded
+    /// back into an equivilent operation using `expand_from()`
+    pub fn compress_to<W: Write>(&self, writer: &mut W) -> io::Result<()> {
+
+        let mut int_buf = [0;4];
+        NetworkEndian::write_u32(&mut int_buf, self.position as u32);
+        try!(writer.write(&int_buf));
+        NetworkEndian::write_u32(&mut int_buf, self.len as u32);
+        try!(writer.write(&int_buf));
+        Ok(())
+    }
+
+    /// Expand this operation from previously compressed data in `reader`.  The data in reader
+    /// should have been written using `compress_to()`
+    pub fn expand_from<R: Read>(reader: &mut R) -> io::Result<Delete> {
+        let mut int_buf = [0;4];
+        try!(reader.read_exact(&mut int_buf));
+        let position = NetworkEndian::read_u32(&int_buf);
+        try!(reader.read_exact(&mut int_buf));
+        let len = NetworkEndian::read_u32(&int_buf);
+        Ok(Delete{
+            position: position as usize,
+            len: len as usize,
+        })
     }
 
 }

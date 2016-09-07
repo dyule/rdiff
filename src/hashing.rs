@@ -1,8 +1,9 @@
 use super::{BlockHashes, Diff, Window};
-use std::io::{Read, Result};
+use std::io::{Read, Write, Result};
 use std::collections::HashMap;
 use crypto::md5::Md5;
 use crypto::digest::Digest;
+use byteorder::{NetworkEndian, ByteOrder};
 
 /// Implements a weak, but easy to calculate hash for a block of bytes
 ///
@@ -103,6 +104,15 @@ impl BlockHashes {
             block_size: block_size,
             file_size: total_size
         })
+    }
+
+    /// Construct a new block hash for a file that was just created
+    pub fn empty(block_size: usize) -> BlockHashes {
+        BlockHashes {
+            hashes: HashMap::new(),
+            block_size: block_size,
+            file_size: 0
+        }
     }
 
     /// Compare the data in `new_data` with the hashes computed from either
@@ -210,6 +220,88 @@ impl BlockHashes {
         self.hashes = new_hashes;
         self.file_size = window.get_bytes_read();
         Ok(diffs)
+    }
+
+    /// Checks if `data_source` has changed since the last time the hashes were updated.
+    ///
+    /// Returns true if `data_source` is identical to what it was when the hashes were generated, false otherwise
+    pub fn verify_unchanged<R: Read>(&self, data_source: &mut R) -> Result<bool> {
+        let mut block = vec![0;self.block_size];
+        let mut block_index = 0;
+        let mut strong_hasher = Md5::new();
+        let mut total_size = 0;
+
+        let mut read_size = try!(data_source.read(&mut block));
+        while read_size > 0 {
+            let weak_hash = RollingHash::hash_buffer(&block[..read_size]);
+            if let Some(entry) = self.hashes.get(&weak_hash) {
+                let mut strong_hash:[u8;16] = [0;16];
+                strong_hasher.reset();
+                strong_hasher.input(&block[..read_size]);
+                strong_hasher.result(&mut strong_hash);
+                if !entry.contains(&(block_index, strong_hash)) {
+                    return Ok(false);
+                }
+            }
+
+
+            block_index += 1;
+            total_size += read_size;
+            read_size = try!(data_source.read(&mut block));
+        }
+        Ok(total_size == self.file_size)
+    }
+
+    /// Compress these Hashes and write to `writer`.  The output can then be expanded
+    /// back into an equivilent Hash collection using `expand_from()`
+    pub fn compress_to<W: Write>(&self, writer: &mut W) -> Result<()> {
+
+        let mut int_buf = [0;4];
+        NetworkEndian::write_u32(&mut int_buf, self.file_size as u32);
+        try!(writer.write(&int_buf));
+        NetworkEndian::write_u32(&mut int_buf, self.block_size as u32);
+        try!(writer.write(&int_buf));
+        let block_count = (self.file_size + self.block_size - 1) / self.block_size;
+        let dummy_hash = [0u8;16];
+        let mut sequential_hashes = Vec::with_capacity(block_count);
+        sequential_hashes.resize(block_count, (0, &dummy_hash));
+        for (weak_hash, entry) in self.hashes.iter() {
+            for &(index, ref strong_hash) in entry.iter() {
+                sequential_hashes[index] = (*weak_hash, strong_hash);
+            }
+        }
+        for (weak, strong) in sequential_hashes {
+            NetworkEndian::write_u32(&mut int_buf, weak);
+            try!(writer.write(&int_buf));
+            try!(writer.write(strong));
+        }
+        Ok(())
+    }
+
+    /// Expand these hashes from previously compressed data in `reader`.  The data in reader
+    /// should have been written using `compress_to()`
+    pub fn expand_from<R: Read>(reader: &mut R) -> Result<BlockHashes> {
+        let mut int_buf = [0;4];
+        let mut strong_hash = [0u8;16];
+        try!(reader.read(&mut int_buf));
+        let file_size = NetworkEndian::read_u32(&mut int_buf) as usize;
+        try!(reader.read(&mut int_buf));
+        let block_size = NetworkEndian::read_u32(&mut int_buf) as usize;
+        let block_count = (file_size + block_size - 1) / block_size;
+        // Might be an overestimate, but not by more than a few
+        let mut hashes = HashMap::with_capacity(block_count);
+
+        for block_index in 0..block_count {
+            try!(reader.read(&mut int_buf));
+            let weak_hash = NetworkEndian::read_u32(&mut int_buf);
+            try!(reader.read(&mut strong_hash));
+            hashes.entry(weak_hash).or_insert(Vec::new()).push((block_index, strong_hash));
+        }
+        Ok(BlockHashes {
+            file_size: file_size,
+            block_size: block_size,
+            hashes: hashes
+        })
     }
 
     /// Checks if the current window frame matches any existing block with an index greater than the previously matched block.

@@ -1,6 +1,6 @@
 [package]
 name = "rdiff"
-version = "0.1.1"
+version = "0.1.2"
 authors = ["Daniel Yule <daniel.yule@gmail.com>"]
 description = "A library for tracking changes to a file over time"
 documentation = "https://dyule.github.io/rdiff/rdiff/"
@@ -13,6 +13,7 @@ license = "CC0-1.0"
 [dependencies]
 rust-crypto = "^0.2"
 log = "0.3"
+byteorder = "0.5"
 
 [dev-dependencies]
 notify = "2.6.1"
