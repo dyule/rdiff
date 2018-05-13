@@ -278,6 +278,15 @@ impl fmt::Debug for Delete {
 }
 
 impl Insert {
+    /// Builds a new `Insert` from the data and position
+    #[inline]
+    pub fn new(data: Vec<u8>, position: usize) -> Insert {
+        Insert {
+            data: data,
+            position: position,
+        }
+    }
+
     /// Gets the byte position of this insert operation in its file
     #[inline]
     pub fn get_position(&self) -> usize {
@@ -323,6 +332,15 @@ impl Insert {
 }
 
 impl Delete {
+    /// Builds a new `Delete` from a position and length
+    #[inline]
+    pub fn new(position: usize, length: usize) -> Delete {
+        Delete {
+            position: position,
+            len: length,
+        }
+    }
+
     /// Gets the byte position of this delete operation in its file
     #[inline]
     pub fn get_position(&self) -> usize {
