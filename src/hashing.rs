@@ -102,7 +102,7 @@ impl BlockHashes {
         Ok(BlockHashes {
             hashes,
             block_size,
-            file_size
+            file_size: total_size
         })
     }
 

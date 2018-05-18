@@ -20,7 +20,7 @@
 //! These methods can be used to refine the course differences found through the rsync method.
 
 #![deny(missing_docs)]
-extern crate crypto;
+extern crate md5;
 extern crate byteorder;
 #[macro_use]
 extern crate log;
@@ -108,7 +108,7 @@ impl Diff {
                 return;
             }
         }
-        self.inserts.push(Insert::new(position, data));
+        self.inserts.push(Insert::new(data, position));
     }
 
     // Adds an delete operation into this diff.  The operation must occur after
@@ -328,7 +328,7 @@ impl Insert {
 impl Delete {
     /// Builds a new `Delete` from a position and length
     #[inline]
-    pub fn new(position: usize, length: usize) -> Delete {
+    pub fn new(position: usize, len: usize) -> Delete {
         Delete {
             position,
             len,
