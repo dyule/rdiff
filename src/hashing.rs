@@ -100,9 +100,9 @@ impl BlockHashes {
             read_size = try!(data_source.read(&mut block));
         }
         Ok(BlockHashes {
-            hashes: hashes,
-            block_size: block_size,
-            file_size: total_size
+            hashes,
+            block_size,
+            file_size
         })
     }
 

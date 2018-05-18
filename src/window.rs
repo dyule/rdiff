@@ -17,11 +17,11 @@ impl<R:Read> Window<R> {
             back.set_len(size);
         }
         Ok(Window {
-            front: front,
-            back: back,
-            block_size: block_size,
+            front,
+            back,
+            block_size,
             offset: 0,
-            reader: reader,
+            reader,
             bytes_read: 0
         })
     }

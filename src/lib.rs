@@ -108,10 +108,7 @@ impl Diff {
                 return;
             }
         }
-        self.inserts.push(Insert {
-            position: position,
-            data: data
-        });
+        self.inserts.push(Insert::new(position, data));
     }
 
     // Adds an delete operation into this diff.  The operation must occur after
@@ -124,10 +121,7 @@ impl Diff {
                 return;
             }
         }
-        self.deletes.push(Delete {
-            position: position,
-            len: len
-        });
+        self.deletes.push(Delete::new(position, len));
     }
 
     /// Gets an iterator over all insert operations
@@ -282,8 +276,8 @@ impl Insert {
     #[inline]
     pub fn new(data: Vec<u8>, position: usize) -> Insert {
         Insert {
-            data: data,
-            position: position,
+            data,
+            position,
         }
     }
 
@@ -336,8 +330,8 @@ impl Delete {
     #[inline]
     pub fn new(position: usize, length: usize) -> Delete {
         Delete {
-            position: position,
-            len: length,
+            position,
+            len,
         }
     }
 
