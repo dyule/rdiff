@@ -20,7 +20,7 @@
 //! These methods can be used to refine the course differences found through the rsync method.
 
 #![deny(missing_docs)]
-extern crate md5;
+extern crate crypto;
 extern crate byteorder;
 #[macro_use]
 extern crate log;
